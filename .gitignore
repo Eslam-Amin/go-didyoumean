@@ -19,3 +19,9 @@ go.work
 .vscode/
 *.swp
 *.swo
+
+# AI assistant instructions
+agent.md
+agents.md
+GEMINI.md
+.github/copilot-instructions.md
