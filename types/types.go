@@ -71,3 +71,52 @@ type Options struct {
 	// CustomHTMLRenderer allows providing a custom renderer for HTML developer cards.
 	CustomHTMLRenderer func(w http.ResponseWriter, r *http.Request, suggestions []RouteSuggestion) error
 }
+
+// ApplyDefaults fills in default values for Options when not explicitly configured.
+func (o *Options) ApplyDefaults() {
+	if o.MaxSuggestions <= 0 {
+		o.MaxSuggestions = 3
+	}
+	if o.Threshold <= 0 {
+		o.Threshold = 0.4
+	}
+	if o.IncludeMethodMismatches == nil {
+		t := true
+		o.IncludeMethodMismatches = &t
+	}
+}
+
+// ShouldIncludeMethodMismatches returns true if method mismatches should be included.
+func (o *Options) ShouldIncludeMethodMismatches() bool {
+	if o.IncludeMethodMismatches == nil {
+		return true
+	}
+	return *o.IncludeMethodMismatches
+}
+
+// IsRouteExcluded checks if a path matches any pattern in ExcludeRoutes.
+func (o *Options) IsRouteExcluded(path string) bool {
+	cleanPath := strings.TrimSpace(path)
+	for _, excluded := range o.ExcludeRoutes {
+		ex := strings.TrimSpace(excluded)
+		if ex == "" {
+			continue
+		}
+		// Exact match
+		if cleanPath == ex {
+			return true
+		}
+		// Prefix match if excluded ends with wildcard /* or /
+		if strings.HasSuffix(ex, "/*") {
+			prefix := strings.TrimSuffix(ex, "/*")
+			if strings.HasPrefix(cleanPath, prefix) {
+				return true
+			}
+		} else if strings.HasSuffix(ex, "/") {
+			if strings.HasPrefix(cleanPath, ex) {
+				return true
+			}
+		}
+	}
+	return false
+}
