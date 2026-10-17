@@ -261,3 +261,47 @@ func EchoNotFoundHandler(e *echo.Echo, opts Options) echo.HandlerFunc {
 		return echo.NotFoundHandler(c)
 	}
 }
+
+// HTTPNotFoundHandler creates an http.HandlerFunc for standard net/http routers (e.g. Go 1.22+).
+func HTTPNotFoundHandler(knownRoutes []RouteEntry, opts Options) http.HandlerFunc {
+	opts.ApplyDefaults()
+
+	var cachedRoutes []types.RouteEntry
+	var harvestOnce sync.Once
+
+	return func(w http.ResponseWriter, req *http.Request) {
+		if !IsEnabled(opts) {
+			http.NotFound(w, req)
+			return
+		}
+
+		harvestOnce.Do(func() {
+			var openapiRoutes []types.RouteEntry
+			if opts.OpenAPISpec != nil {
+				if parsed, err := discovery.ParseOpenAPISpec(opts.OpenAPISpec); err == nil {
+					openapiRoutes = parsed
+				}
+			}
+			cachedRoutes = discovery.MergeRoutes(openapiRoutes, knownRoutes)
+		})
+
+		suggestions := matcher.RankRoutes(req.Method, req.URL.Path, cachedRoutes, opts)
+		if len(suggestions) > 0 {
+			WriteResponse(w, req, suggestions, opts)
+			return
+		}
+
+		http.NotFound(w, req)
+	}
+}
+
+func harvestAllRoutes(engine *gin.Engine, opts Options) []types.RouteEntry {
+	var openapiRoutes []types.RouteEntry
+	if opts.OpenAPISpec != nil {
+		if parsed, err := discovery.ParseOpenAPISpec(opts.OpenAPISpec); err == nil {
+			openapiRoutes = parsed
+		}
+	}
+	ginRoutes := discovery.HarvestGinRoutes(engine)
+	return discovery.MergeRoutes(openapiRoutes, ginRoutes)
+}
