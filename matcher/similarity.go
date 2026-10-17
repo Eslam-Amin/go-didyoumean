@@ -193,3 +193,88 @@ func SorensenDiceSimilarity(s1, s2 string) float64 {
 	total := (len(r1) - 1) + (len(r2) - 1)
 	return (2.0 * float64(intersection)) / float64(total)
 }
+
+// SegmentSimilarity computes similarity between two URL path segment slices.
+// Incorporates dynamic parameter placeholders (like :id or {id}) and positional alignment.
+func SegmentSimilarity(aSegments, bSegments []string) float64 {
+	lenA := len(aSegments)
+	lenB := len(bSegments)
+
+	if lenA == 0 && lenB == 0 {
+		return 1.0
+	}
+	if lenA == 0 || lenB == 0 {
+		return 0.0
+	}
+
+	maxLen := max(lenA, lenB)
+	minLen := min(lenA, lenB)
+
+	// Positional comparison
+	totalPositionalScore := 0.0
+	for i := 0; i < minLen; i++ {
+		segA := strings.ToLower(aSegments[i])
+		segB := strings.ToLower(bSegments[i])
+
+		if isParameterSegment(segA) || isParameterSegment(segB) {
+			// Parameter match
+			totalPositionalScore += 0.95
+		} else if segA == segB {
+			totalPositionalScore += 1.0
+		} else {
+			lev := LevenshteinSimilarity(segA, segB)
+			jw := JaroWinklerSimilarity(segA, segB)
+			totalPositionalScore += 0.6*jw + 0.4*lev
+		}
+	}
+	positionalScore := totalPositionalScore / float64(maxLen)
+
+	// Token set overlap (for shifted segments like /api/users vs /api/v1/users)
+	matchedB := make([]bool, lenB)
+	tokenMatchScore := 0.0
+	for _, sA := range aSegments {
+		lowerA := strings.ToLower(sA)
+		bestSegScore := 0.0
+		bestIdx := -1
+
+		for j, sB := range bSegments {
+			if matchedB[j] {
+				continue
+			}
+			lowerB := strings.ToLower(sB)
+			var curScore float64
+			if isParameterSegment(lowerB) {
+				curScore = 0.9
+			} else if lowerA == lowerB {
+				curScore = 1.0
+			} else {
+				curScore = 0.5*JaroWinklerSimilarity(lowerA, lowerB) + 0.5*LevenshteinSimilarity(lowerA, lowerB)
+			}
+			if curScore > bestSegScore {
+				bestSegScore = curScore
+				bestIdx = j
+			}
+		}
+
+		if bestIdx >= 0 && bestSegScore >= 0.5 {
+			matchedB[bestIdx] = true
+			tokenMatchScore += bestSegScore
+		}
+	}
+	tokenScore := tokenMatchScore / float64(maxLen)
+
+	// Blend positional and token set matching (prioritizing positional)
+	finalScore := 0.7*positionalScore + 0.3*tokenScore
+	return math.Min(1.0, math.Max(0.0, finalScore))
+}
+
+// isParameterSegment checks if a segment represents a route parameter.
+func isParameterSegment(seg string) bool {
+	if strings.HasPrefix(seg, ":") || strings.HasPrefix(seg, "*") {
+		return true
+	}
+	if strings.HasPrefix(seg, "{") && strings.HasSuffix(seg, "}") {
+		return true
+	}
+	return false
+}
