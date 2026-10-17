@@ -120,3 +120,11 @@ func (o *Options) IsRouteExcluded(path string) bool {
 	}
 	return false
 }
+
+// ErrorResponse represents the default JSON 404 response payload.
+type ErrorResponse struct {
+	StatusCode  int               `json:"statusCode"`
+	Error       string            `json:"error"`
+	Message     string            `json:"message"`
+	Suggestions []RouteSuggestion `json:"suggestions"`
+}
