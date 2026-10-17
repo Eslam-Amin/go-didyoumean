@@ -85,3 +85,62 @@ func isRootCatchAll(p string) bool {
 	p = strings.TrimSpace(p)
 	return p == "/*" || p == "*" || p == "/*any" || p == "/*filepath"
 }
+
+// MergeRoutes merges two route lists (e.g. OpenAPI spec and Router harvested routes),
+// deduplicating by normalized path and HTTP method while preserving rich metadata (summary, description).
+func MergeRoutes(primary, secondary []types.RouteEntry) []types.RouteEntry {
+	type key struct {
+		normPath string
+		method   string
+	}
+
+	routeMap := make(map[key]*types.RouteEntry)
+	var orderedKeys []key
+
+	// Add routes helper
+	addRoute := func(entry types.RouteEntry) {
+		normPath := matcher.NormalizePath(entry.Path)
+		for _, m := range entry.Methods {
+			mUpper := strings.ToUpper(string(m))
+			k := key{normPath: normPath, method: mUpper}
+
+			if existing, found := routeMap[k]; found {
+				// Merge metadata if empty
+				if existing.Summary == "" && entry.Summary != "" {
+					existing.Summary = entry.Summary
+				}
+				if existing.Description == "" && entry.Description != "" {
+					existing.Description = entry.Description
+				}
+				if existing.OperationID == "" && entry.OperationID != "" {
+					existing.OperationID = entry.OperationID
+				}
+			} else {
+				newEntry := &types.RouteEntry{
+					Path:        entry.Path,
+					Methods:     []types.HttpMethod{types.HttpMethod(mUpper)},
+					Summary:     entry.Summary,
+					Description: entry.Description,
+					OperationID: entry.OperationID,
+					Source:      entry.Source,
+				}
+				routeMap[k] = newEntry
+				orderedKeys = append(orderedKeys, k)
+			}
+		}
+	}
+
+	for _, r := range primary {
+		addRoute(r)
+	}
+	for _, r := range secondary {
+		addRoute(r)
+	}
+
+	result := make([]types.RouteEntry, 0, len(orderedKeys))
+	for _, k := range orderedKeys {
+		result = append(result, *routeMap[k])
+	}
+
+	return result
+}
