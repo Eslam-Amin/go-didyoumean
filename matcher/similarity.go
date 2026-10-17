@@ -47,3 +47,23 @@ func LevenshteinDistance(a, b string) int {
 
 	return prevRow[bLen]
 }
+
+// LevenshteinSimilarity computes normalized Levenshtein similarity in range [0.0, 1.0].
+// 1.0 indicates identical strings, 0.0 indicates completely disjoint strings.
+func LevenshteinSimilarity(a, b string) float64 {
+	if a == b {
+		return 1.0
+	}
+	ar := []rune(a)
+	br := []rune(b)
+	maxLen := max(len(ar), len(br))
+	if maxLen == 0 {
+		return 1.0
+	}
+	dist := LevenshteinDistance(a, b)
+	sim := 1.0 - float64(dist)/float64(maxLen)
+	if sim < 0.0 {
+		return 0.0
+	}
+	return sim
+}
