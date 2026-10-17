@@ -34,3 +34,26 @@ func HarvestGinRoutes(engine *gin.Engine) []types.RouteEntry {
 
 	return entries
 }
+
+// HarvestChiRoutes inspects registered routes on a Chi router using chi.Walk.
+func HarvestChiRoutes(r chi.Routes) []types.RouteEntry {
+	if r == nil {
+		return nil
+	}
+
+	var entries []types.RouteEntry
+
+	_ = chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+		if isRootCatchAll(route) {
+			return nil
+		}
+		entries = append(entries, types.RouteEntry{
+			Path:    route,
+			Methods: []types.HttpMethod{types.HttpMethod(strings.ToUpper(method))},
+			Source:  "chi",
+		})
+		return nil
+	})
+
+	return entries
+}
