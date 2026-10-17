@@ -19,3 +19,13 @@ const (
 	MethodConnect HttpMethod = http.MethodConnect
 	MethodTrace   HttpMethod = http.MethodTrace
 )
+
+// RouteEntry represents a registered API route discovered via OpenAPI or router inspection.
+type RouteEntry struct {
+	Path        string       `json:"path"`
+	Methods     []HttpMethod `json:"methods"`
+	Summary     string       `json:"summary,omitempty"`
+	Description string       `json:"description,omitempty"`
+	OperationID string       `json:"operationId,omitempty"`
+	Source      string       `json:"source"` // "openapi", "gin", "chi", "echo", "http"
+}
