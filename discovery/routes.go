@@ -57,3 +57,31 @@ func HarvestChiRoutes(r chi.Routes) []types.RouteEntry {
 
 	return entries
 }
+
+// HarvestEchoRoutes inspects registered routes on an Echo instance.
+func HarvestEchoRoutes(e *echo.Echo) []types.RouteEntry {
+	if e == nil {
+		return nil
+	}
+
+	routes := e.Routes()
+	entries := make([]types.RouteEntry, 0, len(routes))
+
+	for _, r := range routes {
+		if isRootCatchAll(r.Path) {
+			continue
+		}
+		entries = append(entries, types.RouteEntry{
+			Path:    r.Path,
+			Methods: []types.HttpMethod{types.HttpMethod(strings.ToUpper(r.Method))},
+			Source:  "echo",
+		})
+	}
+
+	return entries
+}
+
+func isRootCatchAll(p string) bool {
+	p = strings.TrimSpace(p)
+	return p == "/*" || p == "*" || p == "/*any" || p == "/*filepath"
+}
