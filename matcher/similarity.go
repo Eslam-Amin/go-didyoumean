@@ -278,3 +278,29 @@ func isParameterSegment(seg string) bool {
 	}
 	return false
 }
+
+// HybridScore calculates the combined multi-metric score as defined in the system architecture:
+// Score = 0.5 * SegmentSim + 0.3 * JaroWinkler + 0.2 * Levenshtein
+func HybridScore(reqNormalizedPath, candidateNormalizedPath string, reqSegments, candidateSegments []string, isStructuralMatch bool) float64 {
+	if isStructuralMatch {
+		// Exact structural match (static segments match and dynamic params have values)
+		return 0.99
+	}
+
+	normReq := strings.ToLower(reqNormalizedPath)
+	normCand := strings.ToLower(candidateNormalizedPath)
+
+	if normReq == normCand {
+		return 1.0
+	}
+
+	segSim := SegmentSimilarity(reqSegments, candidateSegments)
+	jwSim := JaroWinklerSimilarity(normReq, normCand)
+	levSim := LevenshteinSimilarity(normReq, normCand)
+
+	score := (0.5 * segSim) + (0.3 * jwSim) + (0.2 * levSim)
+
+	// Round to 4 decimal places for clean representation
+	rounded := math.Round(score*10000) / 10000
+	return math.Min(1.0, math.Max(0.0, rounded))
+}
