@@ -86,3 +86,11 @@ func IsParamSegment(seg string) bool {
 func IsCatchAllSegment(seg string) bool {
 	return strings.HasPrefix(seg, "*")
 }
+
+// StandardizeWildcards converts wildcard representations ({param}, :param) into a standard format ":param".
+func StandardizeWildcards(p string) string {
+	normalized := NormalizePath(p)
+	// Replace {id} with :id
+	replaced := regexCurlyParam.ReplaceAllString(normalized, ":$1")
+	return replaced
+}
