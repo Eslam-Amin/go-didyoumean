@@ -140,3 +140,33 @@ func RankRoutes(requestMethod, requestPath string, routes []types.RouteEntry, op
 
 	return allSuggestions
 }
+
+func containsMethod(methods []types.HttpMethod, target types.HttpMethod) bool {
+	for _, m := range methods {
+		if strings.EqualFold(string(m), string(target)) {
+			return true
+		}
+	}
+	return false
+}
+
+func addOrUpdateSuggestion(list *[]types.RouteSuggestion, seen map[string]int, sug types.RouteSuggestion) {
+	key := string(sug.Method) + ":" + NormalizePath(sug.Path)
+	if idx, exists := seen[key]; exists {
+		// Update if score is higher or preserve richer summary
+		if sug.Score > (*list)[idx].Score {
+			(*list)[idx].Score = sug.Score
+			(*list)[idx].IsMethodMismatch = sug.IsMethodMismatch
+		}
+		if (*list)[idx].Summary == "" && sug.Summary != "" {
+			(*list)[idx].Summary = sug.Summary
+		}
+		if (*list)[idx].Description == "" && sug.Description != "" {
+			(*list)[idx].Description = sug.Description
+		}
+		return
+	}
+
+	seen[key] = len(*list)
+	*list = append(*list, sug)
+}
