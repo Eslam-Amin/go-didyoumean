@@ -180,3 +180,37 @@ func GinNoRouteHandler(engine *gin.Engine, opts Options) gin.HandlerFunc {
 		c.String(http.StatusNotFound, "404 page not found")
 	}
 }
+
+// ChiNotFoundHandler creates an http.HandlerFunc to use with router.NotFound(...).
+func ChiNotFoundHandler(r chi.Routes, opts Options) http.HandlerFunc {
+	opts.ApplyDefaults()
+
+	var cachedRoutes []types.RouteEntry
+	var harvestOnce sync.Once
+
+	return func(w http.ResponseWriter, req *http.Request) {
+		if !IsEnabled(opts) {
+			http.NotFound(w, req)
+			return
+		}
+
+		harvestOnce.Do(func() {
+			var openapiRoutes []types.RouteEntry
+			if opts.OpenAPISpec != nil {
+				if parsed, err := discovery.ParseOpenAPISpec(opts.OpenAPISpec); err == nil {
+					openapiRoutes = parsed
+				}
+			}
+			chiRoutes := discovery.HarvestChiRoutes(r)
+			cachedRoutes = discovery.MergeRoutes(openapiRoutes, chiRoutes)
+		})
+
+		suggestions := matcher.RankRoutes(req.Method, req.URL.Path, cachedRoutes, opts)
+		if len(suggestions) > 0 {
+			WriteResponse(w, req, suggestions, opts)
+			return
+		}
+
+		http.NotFound(w, req)
+	}
+}
