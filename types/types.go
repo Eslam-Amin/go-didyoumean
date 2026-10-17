@@ -29,3 +29,13 @@ type RouteEntry struct {
 	OperationID string       `json:"operationId,omitempty"`
 	Source      string       `json:"source"` // "openapi", "gin", "chi", "echo", "http"
 }
+
+// RouteSuggestion represents a recommended matching route returned for a 404 request.
+type RouteSuggestion struct {
+	Method           HttpMethod `json:"method"`
+	Path             string     `json:"path"`
+	Score            float64    `json:"score"`
+	IsMethodMismatch bool       `json:"isMethodMismatch"`
+	Summary          string     `json:"summary,omitempty"`
+	Description      string     `json:"description,omitempty"`
+}
