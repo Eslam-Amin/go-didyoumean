@@ -39,3 +39,35 @@ type RouteSuggestion struct {
 	Summary          string     `json:"summary,omitempty"`
 	Description      string     `json:"description,omitempty"`
 }
+
+// Options configures the didyoumean middleware and ranking engine.
+type Options struct {
+	// OpenAPISpec can be a file path string, remote URL string, []byte, or io.Reader.
+	OpenAPISpec any
+
+	// MaxSuggestions is the maximum number of suggestions to return (default: 3).
+	MaxSuggestions int
+
+	// Threshold is the minimum similarity score required for a suggestion (default: 0.4).
+	Threshold float64
+
+	// Enabled explicitly forces the middleware to be enabled or disabled regardless of environment.
+	Enabled *bool
+
+	// EnabledEnvironments defines environment names where didyoumean is active.
+	// If empty, defaults to enabling in all non-production and non-release environments.
+	EnabledEnvironments []string
+
+	// ExcludeRoutes specifies path patterns or exact paths to exclude from suggestions (e.g. "/health", "/metrics").
+	ExcludeRoutes []string
+
+	// IncludeMethodMismatches controls whether wrong-method exact/structural matches are prioritized.
+	// Defaults to true.
+	IncludeMethodMismatches *bool
+
+	// FormatResponse allows providing a custom response object for JSON responses.
+	FormatResponse func(suggestions []RouteSuggestion, r *http.Request) any
+
+	// CustomHTMLRenderer allows providing a custom renderer for HTML developer cards.
+	CustomHTMLRenderer func(w http.ResponseWriter, r *http.Request, suggestions []RouteSuggestion) error
+}
