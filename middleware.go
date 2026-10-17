@@ -214,3 +214,50 @@ func ChiNotFoundHandler(r chi.Routes, opts Options) http.HandlerFunc {
 		http.NotFound(w, req)
 	}
 }
+
+// EchoNotFoundHandler creates an Echo handler func for unmatched routes (e.g. e.RouteNotFound).
+func EchoNotFoundHandler(e *echo.Echo, opts Options) echo.HandlerFunc {
+	opts.ApplyDefaults()
+
+	var cachedRoutes []types.RouteEntry
+	var harvestOnce sync.Once
+
+	return func(c echo.Context) error {
+		req := c.Request()
+		res := c.Response()
+
+		if !IsEnabled(opts) {
+			return echo.NotFoundHandler(c)
+		}
+
+		harvestOnce.Do(func() {
+			var openapiRoutes []types.RouteEntry
+			if opts.OpenAPISpec != nil {
+				if parsed, err := discovery.ParseOpenAPISpec(opts.OpenAPISpec); err == nil {
+					openapiRoutes = parsed
+				}
+			}
+			echoRoutes := discovery.HarvestEchoRoutes(e)
+			cachedRoutes = discovery.MergeRoutes(openapiRoutes, echoRoutes)
+		})
+
+		suggestions := matcher.RankRoutes(req.Method, req.URL.Path, cachedRoutes, opts)
+		if len(suggestions) > 0 {
+			if PrefersHTML(req) {
+				if opts.CustomHTMLRenderer != nil {
+					if err := opts.CustomHTMLRenderer(res.Writer, req, suggestions); err == nil {
+						return nil
+					}
+				}
+				return RenderHTMLCard(res.Writer, req, suggestions)
+			}
+
+			if opts.FormatResponse != nil {
+				return c.JSON(http.StatusNotFound, opts.FormatResponse(suggestions, req))
+			}
+			return c.JSON(http.StatusNotFound, DefaultFormatResponse(req.Method, req.URL.Path, suggestions))
+		}
+
+		return echo.NotFoundHandler(c)
+	}
+}
