@@ -55,3 +55,34 @@ func NormalizePath(rawPath string) string {
 
 	return clean
 }
+
+// SplitSegments splits a normalized URL path into non-empty path segment strings.
+// For example, "/api/v1/users" -> ["api", "v1", "users"]
+func SplitSegments(p string) []string {
+	normalized := NormalizePath(p)
+	trimmed := strings.Trim(normalized, "/")
+	if trimmed == "" {
+		return nil
+	}
+	return strings.Split(trimmed, "/")
+}
+
+// IsParamSegment checks if a segment represents a route parameter or wildcard.
+// Recognizes ":param" (Gin/Echo), "{param}" (OpenAPI/Chi), and "*param" (catch-all).
+func IsParamSegment(seg string) bool {
+	if seg == "" {
+		return false
+	}
+	if strings.HasPrefix(seg, ":") || strings.HasPrefix(seg, "*") {
+		return true
+	}
+	if strings.HasPrefix(seg, "{") && strings.HasSuffix(seg, "}") && len(seg) > 2 {
+		return true
+	}
+	return false
+}
+
+// IsCatchAllSegment checks if a segment is a wildcard catch-all (e.g. *filepath, *).
+func IsCatchAllSegment(seg string) bool {
+	return strings.HasPrefix(seg, "*")
+}
