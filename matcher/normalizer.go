@@ -94,3 +94,64 @@ func StandardizeWildcards(p string) string {
 	replaced := regexCurlyParam.ReplaceAllString(normalized, ":$1")
 	return replaced
 }
+
+// MatchResult holds the outcome of comparing a request path against a registered route pattern.
+type MatchResult struct {
+	IsExact            bool // Exact character-for-character match
+	IsStructuralMatch  bool // Structural match with dynamic params
+	HasMatchedSegments bool // Matched prefix or majority of segments
+}
+
+// IsStructuralMatch checks if a request path structurally matches a route pattern.
+// E.g. request ["api", "v1", "users", "123"] vs route ["api", "v1", "users", ":id"]
+// Returns:
+// - matches: true if all segments match (static segments match, param segments have non-empty values)
+// - isExact: true if there are NO wildcards and the paths match completely
+func IsStructuralMatch(reqSegments, routeSegments []string) (matches bool, isExact bool) {
+	lenReq := len(reqSegments)
+	lenRoute := len(routeSegments)
+
+	if lenReq == 0 && lenRoute == 0 {
+		return true, true
+	}
+
+	// Check for catch-all at the end of routeSegments
+	hasCatchAll := lenRoute > 0 && IsCatchAllSegment(routeSegments[lenRoute-1])
+
+	if !hasCatchAll && lenReq != lenRoute {
+		return false, false
+	}
+
+	if hasCatchAll && lenReq < lenRoute-1 {
+		return false, false
+	}
+
+	hasParam := false
+	compareLimit := lenRoute
+	if hasCatchAll {
+		compareLimit = lenRoute - 1
+	}
+
+	for i := 0; i < compareLimit; i++ {
+		routeSeg := routeSegments[i]
+		reqSeg := reqSegments[i]
+
+		if IsParamSegment(routeSeg) {
+			hasParam = true
+			if strings.TrimSpace(reqSeg) == "" {
+				return false, false
+			}
+		} else {
+			// Static segment must match case-insensitively
+			if !strings.EqualFold(reqSeg, routeSeg) {
+				return false, false
+			}
+		}
+	}
+
+	if hasCatchAll {
+		hasParam = true
+	}
+
+	return true, !hasParam
+}
