@@ -96,3 +96,87 @@ func WriteResponse(w http.ResponseWriter, r *http.Request, suggestions []types.R
 
 	_ = json.NewEncoder(w).Encode(payload)
 }
+
+// GinMiddleware creates a Gin middleware that intercepts 404 responses and appends route suggestions.
+func GinMiddleware(engine *gin.Engine, opts Options) gin.HandlerFunc {
+	opts.ApplyDefaults()
+
+	var cachedRoutes []types.RouteEntry
+	var harvestOnce sync.Once
+
+	return func(c *gin.Context) {
+		// Production Guardrail: immediate transparent no-op with zero allocations
+		if !IsEnabled(opts) {
+			c.Next()
+			return
+		}
+
+		c.Next()
+
+		if c.Writer.Status() == http.StatusNotFound {
+			harvestOnce.Do(func() {
+				cachedRoutes = harvestAllRoutes(engine, opts)
+			})
+
+			suggestions := matcher.RankRoutes(c.Request.Method, c.Request.URL.Path, cachedRoutes, opts)
+			if len(suggestions) > 0 {
+				if PrefersHTML(c.Request) {
+					if opts.CustomHTMLRenderer != nil {
+						if err := opts.CustomHTMLRenderer(c.Writer, c.Request, suggestions); err == nil {
+							return
+						}
+					}
+					_ = RenderHTMLCard(c.Writer, c.Request, suggestions)
+					return
+				}
+
+				if opts.FormatResponse != nil {
+					c.JSON(http.StatusNotFound, opts.FormatResponse(suggestions, c.Request))
+				} else {
+					c.JSON(http.StatusNotFound, DefaultFormatResponse(c.Request.Method, c.Request.URL.Path, suggestions))
+				}
+			}
+		}
+	}
+}
+
+// GinNoRouteHandler creates a gin.HandlerFunc to use with engine.NoRoute(...).
+func GinNoRouteHandler(engine *gin.Engine, opts Options) gin.HandlerFunc {
+	opts.ApplyDefaults()
+
+	var cachedRoutes []types.RouteEntry
+	var harvestOnce sync.Once
+
+	return func(c *gin.Context) {
+		if !IsEnabled(opts) {
+			c.String(http.StatusNotFound, "404 page not found")
+			return
+		}
+
+		harvestOnce.Do(func() {
+			cachedRoutes = harvestAllRoutes(engine, opts)
+		})
+
+		suggestions := matcher.RankRoutes(c.Request.Method, c.Request.URL.Path, cachedRoutes, opts)
+		if len(suggestions) > 0 {
+			if PrefersHTML(c.Request) {
+				if opts.CustomHTMLRenderer != nil {
+					if err := opts.CustomHTMLRenderer(c.Writer, c.Request, suggestions); err == nil {
+						return
+					}
+				}
+				_ = RenderHTMLCard(c.Writer, c.Request, suggestions)
+				return
+			}
+
+			if opts.FormatResponse != nil {
+				c.JSON(http.StatusNotFound, opts.FormatResponse(suggestions, c.Request))
+			} else {
+				c.JSON(http.StatusNotFound, DefaultFormatResponse(c.Request.Method, c.Request.URL.Path, suggestions))
+			}
+			return
+		}
+
+		c.String(http.StatusNotFound, "404 page not found")
+	}
+}
