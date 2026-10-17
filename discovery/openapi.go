@@ -114,3 +114,44 @@ func ParseOpenAPISpec(specInput any) ([]types.RouteEntry, error) {
 
 	return routes, nil
 }
+
+func readSpecInput(input any) ([]byte, error) {
+	switch v := input.(type) {
+	case []byte:
+		return v, nil
+	case string:
+		str := strings.TrimSpace(v)
+		// Check if URL
+		if strings.HasPrefix(str, "http://") || strings.HasPrefix(str, "https://") {
+			return fetchRemoteSpec(str)
+		}
+		// Check if file on disk
+		if fi, err := os.Stat(str); err == nil && !fi.IsDir() {
+			return os.ReadFile(str)
+		}
+		// Treat as raw JSON / YAML string content
+		return []byte(v), nil
+	case io.Reader:
+		return io.ReadAll(v)
+	default:
+		return nil, fmt.Errorf("unsupported OpenAPI spec input type: %T", input)
+	}
+}
+
+func fetchRemoteSpec(targetURL string) ([]byte, error) {
+	client := &http.Client{
+		Timeout: 7 * time.Second,
+	}
+
+	resp, err := client.Get(targetURL)
+	if err != nil {
+		return nil, fmt.Errorf("HTTP request failed for URL %s: %w", targetURL, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("failed to fetch remote spec, status code: %d", resp.StatusCode)
+	}
+
+	return io.ReadAll(resp.Body)
+}
