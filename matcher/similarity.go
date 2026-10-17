@@ -132,3 +132,31 @@ func JaroSimilarity(s1, s2 string) float64 {
 	t := float64(transpositions) / 2.0
 	return (m/float64(l1) + m/float64(l2) + (m-t)/m) / 3.0
 }
+
+// JaroWinklerSimilarity computes the Jaro-Winkler similarity between two strings in range [0.0, 1.0].
+// Gives extra weight to common prefixes, which is ideal for matching REST API URL paths.
+func JaroWinklerSimilarity(s1, s2 string) float64 {
+	jaro := JaroSimilarity(s1, s2)
+	if jaro <= 0.0 || s1 == s2 {
+		return jaro
+	}
+
+	r1 := []rune(s1)
+	r2 := []rune(s2)
+	maxPrefix := min(4, min(len(r1), len(r2)))
+	prefixLen := 0
+	for i := 0; i < maxPrefix; i++ {
+		if r1[i] == r2[i] {
+			prefixLen++
+		} else {
+			break
+		}
+	}
+
+	const scalingFactor = 0.1
+	jw := jaro + float64(prefixLen)*scalingFactor*(1.0-jaro)
+	if jw > 1.0 {
+		return 1.0
+	}
+	return jw
+}
