@@ -160,3 +160,36 @@ func JaroWinklerSimilarity(s1, s2 string) float64 {
 	}
 	return jw
 }
+
+// SorensenDiceSimilarity computes the Dice similarity coefficient based on character bigrams.
+func SorensenDiceSimilarity(s1, s2 string) float64 {
+	if s1 == s2 {
+		return 1.0
+	}
+	r1 := []rune(s1)
+	r2 := []rune(s2)
+
+	if len(r1) < 2 || len(r2) < 2 {
+		if len(r1) == 0 && len(r2) == 0 {
+			return 1.0
+		}
+		return LevenshteinSimilarity(s1, s2)
+	}
+
+	bg1 := make(map[string]int, len(r1)-1)
+	for i := 0; i < len(r1)-1; i++ {
+		bg1[string(r1[i:i+2])]++
+	}
+
+	intersection := 0
+	for i := 0; i < len(r2)-1; i++ {
+		bg := string(r2[i : i+2])
+		if count, ok := bg1[bg]; ok && count > 0 {
+			bg1[bg]--
+			intersection++
+		}
+	}
+
+	total := (len(r1) - 1) + (len(r2) - 1)
+	return (2.0 * float64(intersection)) / float64(total)
+}
