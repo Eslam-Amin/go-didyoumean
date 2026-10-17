@@ -144,3 +144,58 @@ func MergeRoutes(primary, secondary []types.RouteEntry) []types.RouteEntry {
 
 	return result
 }
+
+// RouteRegistry provides thread-safe route caching and harvesting.
+type RouteRegistry struct {
+	mu     sync.RWMutex
+	routes []types.RouteEntry
+	cached bool
+}
+
+// NewRouteRegistry creates a new RouteRegistry.
+func NewRouteRegistry() *RouteRegistry {
+	return &RouteRegistry{}
+}
+
+// GetRoutes returns the cached routes.
+func (reg *RouteRegistry) GetRoutes() []types.RouteEntry {
+	reg.mu.RLock()
+	defer reg.mu.RUnlock()
+	return reg.routes
+}
+
+// IsCached returns true if routes have already been harvested.
+func (reg *RouteRegistry) IsCached() bool {
+	reg.mu.RLock()
+	defer reg.mu.RUnlock()
+	return reg.cached
+}
+
+// SetRoutes caches the harvested routes.
+func (reg *RouteRegistry) SetRoutes(routes []types.RouteEntry) {
+	reg.mu.Lock()
+	defer reg.mu.Unlock()
+	reg.routes = routes
+	reg.cached = true
+}
+
+// EnsureHarvested ensures harvesting happens once in a thread-safe manner.
+func (reg *RouteRegistry) EnsureHarvested(harvestFn func() []types.RouteEntry) []types.RouteEntry {
+	reg.mu.RLock()
+	if reg.cached {
+		defer reg.mu.RUnlock()
+		return reg.routes
+	}
+	reg.mu.RUnlock()
+
+	reg.mu.Lock()
+	defer reg.mu.Unlock()
+	if reg.cached {
+		return reg.routes
+	}
+
+	harvested := harvestFn()
+	reg.routes = harvested
+	reg.cached = true
+	return reg.routes
+}
