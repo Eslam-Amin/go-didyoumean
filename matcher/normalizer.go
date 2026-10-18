@@ -1,4 +1,4 @@
-﻿package matcher
+package matcher
 
 import (
 	"path"
@@ -97,9 +97,12 @@ func StandardizeWildcards(p string) string {
 
 // MatchResult holds the outcome of comparing a request path against a registered route pattern.
 type MatchResult struct {
-	IsExact            bool // Exact character-for-character match
-	IsStructuralMatch  bool // Structural match with dynamic params
-	HasMatchedSegments bool // Matched prefix or majority of segments
+	// IsExact is true if the request path matches the route pattern character-for-character without parameters.
+	IsExact bool
+	// IsStructuralMatch is true if static segments match and dynamic placeholder segments have valid non-empty values.
+	IsStructuralMatch bool
+	// HasMatchedSegments is true if a common prefix or majority of path segments matched.
+	HasMatchedSegments bool
 }
 
 // IsStructuralMatch checks if a request path structurally matches a route pattern.
