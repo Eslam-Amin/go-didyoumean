@@ -1,7 +1,7 @@
-# didyoumean (Go)
+# go-didyoumean
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/eslam-amin/didyoumean.svg)](https://pkg.go.dev/github.com/eslam-amin/didyoumean)
-[![Go Report Card](https://goreportcard.com/badge/github.com/eslam-amin/didyoumean)](https://goreportcard.com/report/github.com/eslam-amin/didyoumean)
+[![Go Reference](https://pkg.go.dev/badge/github.com/eslam-amin/go-didyoumean.svg)](https://pkg.go.dev/github.com/eslam-amin/go-didyoumean)
+[![Go Report Card](https://goreportcard.com/badge/github.com/eslam-amin/go-didyoumean)](https://goreportcard.com/report/github.com/eslam-amin/go-didyoumean)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > Intelligent, zero-config 404 route suggester for Go REST APIs (**Gin**, **Chi**, **Echo**, and **`net/http`**). Catches unhandled routes, computes fuzzy string and structural similarities, highlights HTTP method mismatches, and suggests the closest endpoints via JSON or a sleek developer HTML error card.
@@ -61,7 +61,7 @@ flowchart TD
 ## 📦 Installation
 
 ```bash
-go get github.com/eslam-amin/didyoumean
+go get github.com/eslam-amin/go-didyoumean
 ```
 
 ---
@@ -76,7 +76,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/eslam-amin/didyoumean"
+	"github.com/eslam-amin/go-didyoumean"
 	"github.com/gin-gonic/gin"
 )
 
@@ -113,7 +113,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/eslam-amin/didyoumean"
+	"github.com/eslam-amin/go-didyoumean"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -145,7 +145,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/eslam-amin/didyoumean"
+	"github.com/eslam-amin/go-didyoumean"
 	"github.com/labstack/echo/v4"
 )
 
@@ -177,7 +177,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/eslam-amin/didyoumean"
+	"github.com/eslam-amin/go-didyoumean"
 )
 
 func main() {
@@ -304,11 +304,11 @@ git push origin main
 git push origin v1.0.0
 
 # 4. Trigger Go Proxy indexing
-GOPROXY=https://proxy.golang.org go list -m github.com/eslam-amin/didyoumean@v1.0.0
+GOPROXY=https://proxy.golang.org go list -m github.com/eslam-amin/go-didyoumean@v1.0.0
 ```
 
 Within minutes, your package documentation will be available at:
-**`https://pkg.go.dev/github.com/eslam-amin/didyoumean`**
+**`https://pkg.go.dev/github.com/eslam-amin/go-didyoumean`**
 
 ---
 
