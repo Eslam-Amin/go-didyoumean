@@ -1,4 +1,4 @@
-module github.com/eslam-amin/didyoumean
+module github.com/eslam-amin/go-didyoumean
 
 go 1.25.3
 
