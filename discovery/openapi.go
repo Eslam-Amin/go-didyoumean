@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/eslam-amin/didyoumean/types"
+	"github.com/eslam-amin/go-didyoumean/types"
 	"gopkg.in/yaml.v3"
 )
 
