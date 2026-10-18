@@ -1,4 +1,6 @@
-﻿package matcher
+// Package matcher implements multi-metric string similarity algorithms,
+// URL path normalization, and route candidate ranking for 404 suggestion generation.
+package matcher
 
 import (
 	"math"
