@@ -1,4 +1,6 @@
-﻿package discovery
+// Package discovery provides endpoint harvesters for live router tables (Gin, Chi, Echo)
+// and parsers for OpenAPI 2.0 (Swagger) and 3.0/3.1 specifications.
+package discovery
 
 import (
 	"bytes"
