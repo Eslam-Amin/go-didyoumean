@@ -3,7 +3,7 @@ package matcher
 import (
 	"testing"
 
-	"github.com/eslam-amin/didyoumean/types"
+	"github.com/eslam-amin/go-didyoumean/types"
 )
 
 func TestRankRoutes_MethodMismatchPrioritization(t *testing.T) {
