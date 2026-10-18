@@ -10,7 +10,7 @@ package didyoumean
 import (
 	"net/http"
 
-	"github.com/eslam-amin/didyoumean/types"
+	"github.com/eslam-amin/go-didyoumean/types"
 )
 
 // HttpMethod represents an HTTP method string.
