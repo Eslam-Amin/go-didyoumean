@@ -1,11 +1,11 @@
-﻿package matcher
+package matcher
 
 import (
 	"math"
 	"sort"
 	"strings"
 
-	"github.com/eslam-amin/didyoumean/types"
+	"github.com/eslam-amin/go-didyoumean/types"
 )
 
 // RankRoutes evaluates candidate routes against a requested HTTP method and URL path,
