@@ -5,8 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/eslam-amin/didyoumean/matcher"
-	"github.com/eslam-amin/didyoumean/types"
+	"github.com/eslam-amin/go-didyoumean/matcher"
+	"github.com/eslam-amin/go-didyoumean/types"
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5"
 	"github.com/labstack/echo/v4"
