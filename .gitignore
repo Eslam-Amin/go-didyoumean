@@ -20,8 +20,19 @@ go.work
 *.swp
 *.swo
 
-# AI assistant instructions
+# AI assistant instructions and configurations
 agent.md
 agents.md
+AGENT.md
+AGENTS.md
 GEMINI.md
+gemini.md
+.gemini/
+copilot-instructions.md
 .github/copilot-instructions.md
+.cursorrules
+.cursor/
+CLAUDE.md
+claude.md
+.claude/
+.windsurf/
