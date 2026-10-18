@@ -1,4 +1,4 @@
-﻿package discovery
+package discovery
 
 import (
 	"net/http"
@@ -145,33 +145,34 @@ func MergeRoutes(primary, secondary []types.RouteEntry) []types.RouteEntry {
 	return result
 }
 
-// RouteRegistry provides thread-safe route caching and harvesting.
+// RouteRegistry provides thread-safe route caching and single-pass harvesting
+// using sync.RWMutex synchronization.
 type RouteRegistry struct {
 	mu     sync.RWMutex
 	routes []types.RouteEntry
 	cached bool
 }
 
-// NewRouteRegistry creates a new RouteRegistry.
+// NewRouteRegistry instantiates an empty thread-safe RouteRegistry.
 func NewRouteRegistry() *RouteRegistry {
 	return &RouteRegistry{}
 }
 
-// GetRoutes returns the cached routes.
+// GetRoutes returns the cached slice of route entries under a read lock.
 func (reg *RouteRegistry) GetRoutes() []types.RouteEntry {
 	reg.mu.RLock()
 	defer reg.mu.RUnlock()
 	return reg.routes
 }
 
-// IsCached returns true if routes have already been harvested.
+// IsCached returns true if routes have already been discovered and cached.
 func (reg *RouteRegistry) IsCached() bool {
 	reg.mu.RLock()
 	defer reg.mu.RUnlock()
 	return reg.cached
 }
 
-// SetRoutes caches the harvested routes.
+// SetRoutes stores a slice of harvested route entries into the cache under a write lock.
 func (reg *RouteRegistry) SetRoutes(routes []types.RouteEntry) {
 	reg.mu.Lock()
 	defer reg.mu.Unlock()
@@ -179,7 +180,8 @@ func (reg *RouteRegistry) SetRoutes(routes []types.RouteEntry) {
 	reg.cached = true
 }
 
-// EnsureHarvested ensures harvesting happens once in a thread-safe manner.
+// EnsureHarvested guarantees that harvestFn is executed at most once,
+// caching and returning the resulting slice of route entries.
 func (reg *RouteRegistry) EnsureHarvested(harvestFn func() []types.RouteEntry) []types.RouteEntry {
 	reg.mu.RLock()
 	if reg.cached {
