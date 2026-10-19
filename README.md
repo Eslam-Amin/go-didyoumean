@@ -8,19 +8,19 @@
 
 ---
 
-## 🌟 Highlights & Key Features
+## Highlights & Key Features
 
-- 🔍 **OpenAPI & Router Discovery:** Seamlessly parses OpenAPI 2.0 (Swagger) and 3.0/3.1 specs (JSON/YAML, local files, byte slices, or remote URLs) and merges them with router-harvested route tables.
-- ⚡ **Zero-Overhead Production Guardrail:** Instantly bypasses in production (`ENV=production`, `GIN_MODE=release`, etc.) with **0 route walking, 0 allocations, and 0 regex evaluation**.
-- 🎯 **Multi-Metric Fuzzy Matching:** Combines **Positional Segment Similarity**, **Jaro-Winkler**, and **Levenshtein Distance** with Unicode rune awareness.
-- 🚨 **Method Mismatch Prioritization (Critical Feature):** Detects if the path matches structurally (e.g. `POST /api/v1/users`) while only another method is registered (`GET /api/v1/users`). Assigns score `1.0`, flags `isMethodMismatch: true`, and sorts it to the top.
-- 🎨 **Developer Error UI Card:** Automatic content negotiation renders a dark-mode developer HTML card with method color badges when requested from a browser (`Accept: text/html`), or structured JSON for API clients.
-- 🧩 **Multi-Router Support:** First-class support for **Gin**, **Chi**, **Echo**, and standard **`net/http`** (Go 1.22+).
-- 🔒 **Thread-Safe Single-Pass Caching:** Uses `sync.Once` and `sync.RWMutex` to ensure route discovery runs exactly once.
+- **OpenAPI & Router Discovery:** Seamlessly parses OpenAPI 2.0 (Swagger) and 3.0/3.1 specs (JSON/YAML, local files, byte slices, or remote URLs) and merges them with router-harvested route tables.
+- **Zero-Overhead Production Guardrail:** Instantly bypasses in production (`ENV=production`, `GIN_MODE=release`, etc.) with **0 route walking, 0 allocations, and 0 regex evaluation**.
+- **Multi-Metric Fuzzy Matching:** Combines **Positional Segment Similarity**, **Jaro-Winkler**, and **Levenshtein Distance** with Unicode rune awareness.
+- **Method Mismatch Prioritization (Critical Feature):** Detects if the path matches structurally (e.g. `POST /api/v1/users`) while only another method is registered (`GET /api/v1/users`). Assigns score `1.0`, flags `isMethodMismatch: true`, and sorts it to the top.
+- **Developer Error UI Card:** Automatic content negotiation renders a dark-mode developer HTML card with method color badges when requested from a browser (`Accept: text/html`), or structured JSON for API clients.
+- **Multi-Router Support:** First-class support for **Gin**, **Chi**, **Echo**, and standard **`net/http`** (Go 1.22+).
+- **Thread-Safe Single-Pass Caching:** Uses `sync.Once` and `sync.RWMutex` to ensure route discovery runs exactly once.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 flowchart TD
@@ -58,7 +58,7 @@ flowchart TD
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 go get github.com/eslam-amin/go-didyoumean
@@ -66,7 +66,7 @@ go get github.com/eslam-amin/go-didyoumean
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Gin
 
@@ -204,7 +204,7 @@ func main() {
 
 ---
 
-## 📡 Response Formats
+## Response Formats
 
 ### 1. Default JSON (`Accept: application/json`)
 
@@ -253,12 +253,12 @@ If the request comes from a browser or API tool asking for HTML, `didyoumean` re
 - Requested method and path
 - Colored method badges (`GET` in green, `POST` in amber, `PUT` in blue, `DELETE` in red)
 - Percentage similarity indicator pills
-- `⚠️ Method Mismatch` warning badge if the path exists for other methods
+- `Method Mismatch` warning badge if the path exists for other methods
 - OpenAPI route summary and description
 
 ---
 
-## ⚙️ Configuration Options
+## Configuration Options
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -274,7 +274,7 @@ If the request comes from a browser or API tool asking for HTML, `didyoumean` re
 
 ---
 
-## 🧠 Fuzzy Scoring Algorithm
+## Fuzzy Scoring Algorithm
 
 The hybrid scoring engine combines three metrics:
 
@@ -287,7 +287,7 @@ $$\text{Score} = 0.5 \times \text{SegmentSim} + 0.3 \times \text{JaroWinkler} + 
 
 ---
 
-## 🚀 Publishing to Go Modules (`pkg.go.dev`)
+## Publishing to Go Modules (`pkg.go.dev`)
 
 Go packages are distributed via Git tags:
 
@@ -312,6 +312,6 @@ Within minutes, your package documentation will be available at:
 
 ---
 
-## 📄 License
+## License
 
 MIT License. See [LICENSE](LICENSE) for details.
